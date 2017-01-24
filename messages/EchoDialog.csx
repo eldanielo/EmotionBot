@@ -1,3 +1,5 @@
+#r "Newtonsoft.Json"
+
 using System;
 using System.Threading.Tasks;
 using Microsoft.Bot.Builder.Dialogs;
@@ -8,6 +10,12 @@ using System.Text;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web;
+using Newtonsoft.Json;
+using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Builder.FormFlow;
+using Microsoft.Bot.Builder.Luis;
+using Microsoft.Bot.Connector;
+
 
 // For more information about this template visit http://aka.ms/azurebots-csharp-basic
 [Serializable]
@@ -76,14 +84,23 @@ public class EchoDialog : IDialog<object>
                
         
                     string data = "{\"documents\":[" +
-                            "{\"id\":\"1\",\"text\":\"test\"},]}";
+                            "{\"id\":\"1\",\"text\":\""+text+"\"},]}";
                     
                     
                       byte[] byteData = Encoding.UTF8.GetBytes(data);
                 var  uri = "text/analytics/v2.0/sentiment";
-                var response = await CallEndpoint(client, uri, byteData);
-       
-            await context.PostAsync($"{text}");
+                var json = await CallEndpoint(client, uri, byteData);
+
+             dynamic resp = JsonConvert.DeserializeObject(json);
+var score = resp.documents[0].score;
+
+
+            var activity  =new Activity();
+            activity.Text = "lol";
+            await context.PostAsync(activity);
+
+
+
             context.Wait(MessageReceivedAsync);
             }
         }
